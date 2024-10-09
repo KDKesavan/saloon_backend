@@ -14,10 +14,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 console.log("enter express");
 console.log(env,"env");
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Console_123",
-  database:"saloon"
+  host: env.parsed.DB_HOST,
+  user: env.parsed.DB_USER,
+  password: env.parsed.DB_PASSWORD,
+  database:env.parsed.DB_NAME
 });
 
 // Connect to the database
