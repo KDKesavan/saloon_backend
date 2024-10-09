@@ -13,15 +13,42 @@ app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 console.log("enter express");
 console.log(env,"env");
-const db = mysql.createConnection({
+let connection;
+function handleDisconnect() {
+    connection = mysql.createConnection({
   host: env.parsed.DB_HOST,
   user: env.parsed.DB_USER,
   password: env.parsed.DB_PASSWORD,
   database:env.parsed.DB_NAME
-});
+    });
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error when connecting to MySQL:', err);
+            setTimeout(handleDisconnect, 2000); // Reconnect after 2 seconds
+        }
+    });
+
+    connection.on('error', (err) => {
+        console.error('MySQL error', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            handleDisconnect(); // Reconnect if connection is lost
+        } else {
+            throw err;
+        }
+    });
+}
+
+handleDisconnect();
+// const db = mysql.createConnection({
+//   host: env.parsed.DB_HOST,
+//   user: env.parsed.DB_USER,
+//   password: env.parsed.DB_PASSWORD,
+//   database:env.parsed.DB_NAME
+// });
 
 // Connect to the database
-db.connect((err) => {
+connection.connect((err) => {
   if (err) {
     console.error('Error connecting to the database:', err);
     return;
@@ -40,7 +67,7 @@ app.post('/formsubmit',async(req,res)=>{
   if(body){
     try {
       const insertQuery = 'INSERT INTO users_data SET ?';
-      await db.query(insertQuery, [body], function (err, result) {
+      await connection.query(insertQuery, [body], function (err, result) {
         if (err) {
           console.error('Error signing up:', err);
           res.status(500).json({ success: false, message: 'Error signing up' });
