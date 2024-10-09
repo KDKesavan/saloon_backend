@@ -84,6 +84,30 @@ app.post('/formsubmit',async(req,res)=>{
   }
 
 })
+app.get('/getData',async(req,res)=>{
+    
+    try {
+      const insertQuery = 'SELECT * FROM `users_data`';
+      await connection.query(insertQuery, function (err, result) {
+        if (err) {
+          console.error('Error signing up:', err);
+          res.status(500).json({ success: false, message: 'Error signing up' });
+          return;
+        }else{
+          console.log(result,"result");
+          console.log("data getede",result.length);
+          res.send(result)
+          // res.status(201).json({ success: true, message: 'User signed up successfully' });
+          
+        }
+      });
+    } catch (error) {
+      console.error('Error signing up:', error);
+      res.status(500).json({ success: false, message: 'Error signing up' });
+    }
+    
+
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
