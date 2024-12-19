@@ -120,7 +120,7 @@ app.post('/sendMsgOffers', async (req, res) => {
   const year = today.getFullYear();
 
   const formattedDate = `${day}-${month}-${year}`;
-  const Message = ` Happy Birthday ${body.name}! 🎉 This month, enjoy an exclusive offer at Servesh Saloon just for you. Visit us and celebrate in style!`
+  const Message = ` Happy Birthday ${body.name}! This month, enjoy an exclusive offer at Servesh Saloon just for you. Visit us and celebrate in style!`
   console.log(formattedDate); // Output: DD-MM-YYYY
   let Datas = {}
   Datas.username = body.name
