@@ -144,7 +144,62 @@ app.post('/sendMsgOffers', async (req, res) => {
   }
 
 })
+// Endpoint to book an appointment
+app.post('/api/bookAppointment', (req, res) => {
+  const { name, date, time } = req.body;
 
+  if (!name || !date || !time) {
+      return res.status(400).json({ success: false, message: 'All fields are required!' });
+  }
+
+  // Check if the slot is already booked
+  const checkQuery = `SELECT * FROM appointments WHERE appointmentDate = ? AND appointmentTime = ?`;
+  connection.query(checkQuery, [date, time], (err, results) => {
+      if (err) return res.status(500).json({ success: false, message: 'Database error.' });
+
+      if (results.length > 0) {
+          return res.status(400).json({ success: false, message: 'Time slot already booked!' });
+      }
+
+      // Insert the booking into the database
+      const insertQuery = `INSERT INTO appointments (customerName, appointmentDate, appointmentTime) VALUES (?, ?, ?)`;
+      connection.query(insertQuery, [name, date, time], (err) => {
+          if (err) return res.status(500).json({ success: false, message: 'Database error.' });
+          res.json({ success: true, message: 'Appointment booked successfully!' });
+      });
+  });
+});
+
+
+const timeSlots = [
+  '06:00', '06:30', '07:00', '07:30', '08:00', '08:30',
+  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+  '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+  '18:00', '18:30', '19:00', '19:30', '20:00'
+];
+
+// API to get available times for a specific date
+app.get('/api/getAvailableTimes', (req, res) => {
+  const { date } = req.query;
+
+  if (!date) {
+    return res.status(400).json({ success: false, error: 'Date is required.' });
+  }
+
+  const query = `SELECT appointmentTime FROM appointments WHERE appointmentDate = ?;`;
+  connection.query(query, [date], (err, results) => {
+    if (err) return res.status(500).json({ success: false, error: 'Database error.' });
+
+    // Extract booked times
+    const bookedTimes = results.map((row) => row.appointmentTime.substring(0, 5)); // Format as 'HH:MM'
+
+    // Filter available times
+    const availableTimes = timeSlots.filter((time) => !bookedTimes.includes(time));
+
+    res.json({ success: true, availableTimes });
+  });
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
